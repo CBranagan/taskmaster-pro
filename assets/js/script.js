@@ -1,5 +1,8 @@
 var tasks = {};
 
+
+
+
 var createTask = function(taskText, taskDate, taskList) {
   // create elements that make up a task item
   var taskLi = $("<li>").addClass("list-group-item");
@@ -12,6 +15,8 @@ var createTask = function(taskText, taskDate, taskList) {
 
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
+
+  auditTask(taskLi);
 
 
   // append to ul list on the page
@@ -44,6 +49,25 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+var auditTask = function(taskEl) {
+
+  var date = $(taskEl).find("span").text().trim();
+
+  var time = moment(date, "L").set("hour", 17);
+
+  $(taskEl).removeClass("list-group-item-warning list-group-item-danger")
+
+  if(moment().isAfter(time)) {
+    $(taskEl).addClass("list-group-item-danger");
+  }
+  else if (Math.abs(moment().diff(time, "days")) <= 2) {
+    $(taskEl).addClass("list-group-item-warning");
+  }
+  
+
+ 
+};
+
 
 // enable draggable/sortable feature on list-group elements
 $(".card .list-group").sortable({
@@ -53,16 +77,16 @@ $(".card .list-group").sortable({
   tolerance: "pointer",
   helper: "clone",
   activate: function(event, ui) {
-    console.log(ui);
+    
   },
   deactivate: function(event, ui) {
-    console.log(ui);
+    
   },
   over: function(event) {
-    console.log(event);
+    
   },
   out: function(event) {
-    console.log(event);
+    
   },
   update: function() {
     var tempArr = [];
@@ -103,13 +127,13 @@ $("#trash").droppable({
   tolerance: "touch",
   drop: function(event, ui) {
     ui.draggable.remove();
-    console.log("drop");
+    
   },
   over: function(event, ui) {
-    console.log("over");
+    
   },
   out: function(event, ui) {
-    console.log("out");
+    
   }
 });
 
@@ -145,6 +169,10 @@ $("#task-form-modal .btn-primary").click(function() {
 
     saveTasks();
   }});
+
+  $("#modalDueDate").datepicker({
+    minDate: 1
+  });
    
   
       $(".list-group").on("click", "p", function() {
@@ -168,6 +196,12 @@ $("#task-form-modal .btn-primary").click(function() {
       .addClass("form-control")
       .val(date);
       $(this).replaceWith(dateInput);
+      dateInput.datepicker({
+        minDate: 1,
+        onClose: function(){
+          $(this).trigger("change");
+        }
+      });
       dateInput.trigger("focus");
       
     })
@@ -197,7 +231,7 @@ $("#task-form-modal .btn-primary").click(function() {
         $(this).replaceWith(taskP);
     });
 
-    $(".list-group").on("blur", "input[type='text']", function() {
+    $(".list-group").on("change", "input[type='text']", function() {
 
       var date = $(this)
       .val()
@@ -220,6 +254,8 @@ $("#task-form-modal .btn-primary").click(function() {
       .text(date);
 
       $(this).replaceWith(taskSpan);
+
+      auditTask($(taskSpan).closest(".list-group-item"));
   });
 
 
